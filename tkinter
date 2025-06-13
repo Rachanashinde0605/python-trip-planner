@@ -1,0 +1,164 @@
+import tkinter as tk
+import sqlite3
+from tkinter import messagebox
+
+def calculate_trip():
+    try:
+        budget = float(entry_budget.get())
+        days = int(entry_days.get())
+        distance = float(entry_distance.get())
+        daily_budget = budget / days
+
+        if budget >= 5000 and budget < 7000:
+            options = ["Pune", "Mumbai"]
+        elif budget >= 7000 and budget < 15000:
+            options = ["Goa", "Munnar", "Shimla"]
+        elif budget >= 15000:
+            options = ["Jaipur", "Delhi", "Udaipur"]
+        else:
+            messagebox.showinfo("Budget Info", "Thank you for your support!")
+            return
+
+        show_trip_info(budget, days, distance, daily_budget, options)
+
+    except ValueError:
+        messagebox.showerror("Invalid input", "Please enter valid numbers for all fields.")
+
+def show_trip_info(budget, days, distance, daily_budget, destinations):
+    info_win = tk.Toplevel(root)
+    info_win.title("Trip Details")
+
+    if daily_budget < 1000:
+        expense_category = "Budget-friendly trip"
+    elif 1000 <= daily_budget <= 1500:
+        expense_category = "Moderate spending trip"
+    else:
+        expense_category = "Luxury trip"
+
+    if distance < 150:
+        travel_mode = "Car or Bus"
+    elif 150 <= distance <= 1000:
+        travel_mode = "Train or Domestic Flight"
+    else:
+        travel_mode = "International Flight"
+
+    info = f"""
+    --- Trip Itinerary ---
+    Total Budget: ₹{budget}
+    Number of Days: {days}
+    Daily Budget: ₹{daily_budget:.2f}
+    Trip Category: {expense_category}
+    Suggested Travel Mode: {travel_mode}
+    """
+    tk.Label(info_win, text=info, justify="left").pack()
+
+    if daily_budget < 50:
+        tk.Label(info_win, text="⚠️ Warning: Your budget is quite low. Consider reducing trip days or choosing a cheaper destination.", fg="red").pack()
+
+    # Destination choice
+    tk.Label(info_win, text="Available Destinations:").pack()
+    destination_var = tk.StringVar(info_win)
+    destination_var.set(destinations[0])
+    tk.OptionMenu(info_win, destination_var, *destinations).pack()
+
+    def show_package():
+        selected = destination_var.get()
+        text_box = tk.Text(info_win, width=100, height=20)
+        text_box.pack()
+
+        packages = {
+            "Pune": """Places to visit:
+1. Aga Khan Palace
+2. Shaniwar Wada
+Hotels for break: Vaishali, 1000 oaks, SP's biryani House
+Hotels to stay: Blue diamond, Hotel Shreyas, Ginger hotel pune""",
+
+            "Mumbai": """Places to visit:
+1. Filmcity, 2. Siddhivinayak Temple, 3. Juhu beach, 4. Wankhede Stadium, 5. Gateway of India, 6. Marine Drive
+Hotels for break: Leopold cafe, Trishna, Cafe Madras
+Hotels to stay: Taj Hotel, The Oberoi, The Soho House, ITC Grand Central""",
+
+            "Goa": """Places to visit: Fort Aguada, Candolin Beach, Mandovi River Cruise, Dudhsagar Waterfalls
+Break: Martin's corner, The Fisherman's Wharf, Vinayak
+Stay: Taj Fort Aguada, Fairfield Marriott, Amrapali House of Grace""",
+
+            "Munnar": """Places: Eravikulam Park, Top Station, Lakkam waterfalls
+Break: Amber Dale, Fragrant Nature
+Stay: Blackberry Hills, Rivulet Resort""",
+
+            "Shimla": """Places: The Ridge, Lakkar Bazaar, Himachal Museum, Scandal Point
+Break: Hotel Silverine, Hotel Shubham
+Stay: The Oberoi Cecil, Wildflower Hall, Snow Valley Resort""",
+
+            "Jaipur": """Places: City Palace, Jal Mahal, Nahargarh Fort, Mehrangarh Fort, Jaswant Thada
+Break: Chokhi Dhani, Peacock Rooftop
+Stay: Pearl Palace, Maharani Palace""",
+
+            "Delhi": """Places: India Gate, Humayun's Tomb, Qutub Minar, Lotus Temple
+Break: Saravana Bhavan, Moolchand Paratha, Big Chill Cafe
+Stay: Smyle Inn, Tara Palace, Hotel Ajanta""",
+
+            "Udaipur": """Places: City Palace, Lake Pichola, Jagdish Temple
+Break: Ambrai Restaurant, Lakeview Restaurant
+Stay: Udai Haveli, Mewar Haveli, Taj Lake Palace"""
+        }
+
+        text_box.insert(tk.END, packages.get(selected, "Destination info not available."))
+
+    tk.Button(info_win, text="Show Destination Info", command=show_package).pack(pady=10)
+    tk.Button(info_win, text="Show All Packages", command=show_all_packages).pack()
+
+def show_all_packages():
+    package_window = tk.Toplevel(root)
+    package_window.title("Travel Company Packages")
+
+    packages = [
+        """🗼 Paris:
+DAY 1: Eiffel Tower, Louvre Museum, Seine River
+DAY 2: Notre-Dame, Montmartre, Sacré-Cœur
+DAY 3: Musée d'Orsay, Cruise, Luxembourg Gardens
+Dining: Café de Flore, Le Relais de la Butte, Michelin-starred dinner
+Total Budget: ₹1,00,000""",
+
+        """🏔️ Ladakh:
+DAY 1: Shanti Stupa, Leh Palace, Leh Market
+DAY 2: Pangong Lake
+DAY 3: Nubra Valley, Diskit Monastery, Sand Dunes
+Dining: Local camp meals
+Total Budget: ₹80,000""",
+
+        """🏰 Disneyland:
+DAY 1: Space Mountain, Pirates of the Caribbean
+DAY 2: Guardians of Galaxy, Radiator Racers
+DAY 3: Meet Mickey, Disneyland Railroad
+Dining: Ghirardelli, Napa Rose, Wine Country Trattoria
+Total Budget: ₹1,50,000"""
+    ]
+
+    for pack in packages:
+        tk.Label(package_window, text=pack, justify="left", padx=10, pady=10, wraplength=600, anchor="w").pack()
+
+# Main Window
+root = tk.Tk()
+root.title("Trip Itinerary Planner")
+
+tk.Label(root, text="Enter your total budget (in INR):").pack()
+entry_budget = tk.Entry(root)
+entry_budget.pack()
+
+tk.Label(root, text="Enter number of days:").pack()
+entry_days = tk.Entry(root)
+entry_days.pack()
+
+tk.Label(root, text="Enter distance from current location (in km):").pack()
+entry_distance = tk.Entry(root)
+entry_distance.pack()
+
+tk.Button(root, text="Plan My Trip", command=calculate_trip).pack(pady=10)
+
+
+
+
+
+
+root.mainloop()
